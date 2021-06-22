@@ -2,12 +2,46 @@ import mongoose from "mongoose";
 
 import PostMessage from "../models/postMessage.js";
 
-export const getPosts = async (req, res) => {
+export const getPost = async (req, res) => {
+  const { id } = req.params;
   try {
-    const postMessages = await PostMessage.find();
-    res.status(200).json(postMessages);
+    const post = await PostMessage.findById(id);
+    res.status(200).json(post);
   } catch (error) {
     res.status(404).json({ message: error.message });
+  }
+};
+
+export const getPosts = async (req, res) => {
+  const { page } = req.query;
+  try {
+    const LIMIT = 2;
+    const startIndex = (Number(page) - 1) * LIMIT; //get the starting index of the every page
+    const total = await PostMessage.countDocuments({}); //counting the total number of the posts in the postmessage collection
+    const post = await PostMessage.find()
+      .sort({ _id: -1 }) /*sort on the basis of id newese first*/
+      .limit(LIMIT) /*give only LIMIT no of posts*/
+      .skip(startIndex); /*skip all the posts till startIndex*/
+    res.status(200).json({
+      data: post,
+      currentPage: Number(page),
+      numberOfPages: Math.ceil(total / LIMIT),
+    });
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};
+
+export const getPostsBySearch = async (req, res) => {
+  const { searchQuery, tags } = req.query;
+  try {
+    const title = new RegExp(searchQuery, "i");
+    const posts = await PostMessage.find({
+      $or: [{ title: title }, { tags: { $in: tags.split(",") } }],
+    });
+    res.json({ data: posts });
+  } catch (error) {
+    res.status(404).json({ message: "somethinnngg went wrong" });
   }
 };
 
