@@ -8,9 +8,11 @@ const postSchema = mongoose.Schema({
   tags: [String],
   selectedFile: String,
   likes: {
+    //+15703619588
     type: [String],
     default: [],
   },
+  comments: { type: [String], default: [] },
   createdAt: {
     type: Date,
     default: new Date(),
